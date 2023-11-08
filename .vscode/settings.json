@@ -1,0 +1,14 @@
+{
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "/home/etudiants/licence3/walid.elouazizi/Téléchargements/projet/build",
+            "binaryPath": "/home/etudiants/licence3/walid.elouazizi/Téléchargements/projet/build/executable",
+            "binaryArgs": []
+        },
+        {
+            "cwd": "/mnt/c/Users/Walkloly/Downloads/projet/build",
+            "binaryPath": "/mnt/c/Users/Walkloly/Downloads/projet/build/executable",
+            "binaryArgs": []
+        }
+    ]
+}
