@@ -1,35 +1,45 @@
 #include <degradation.h>
 
-int degradation(GNode * node, int (*f)(my_stack_t *), my_stack_t * stack){
-    g_node_children_foreach(node, G_TRAVERSE_ALL, stack_creation, stack);
-    switch(mode) {
-        case MODE_TAILLE:
-            return degradationTaille(stack);
-
-        case MODE_LUMINOSITE:
-            return degradationLuminosite(stack);
-
-        case MODE_DISTANCE:
-            return degradationDistance(stack);
-
-        default:
-            return -1;
+int degradation(GNode *node, my_stack_t *stack, int (*f)(GNode *, my_stack_t *))
+{
+    if(node == NULL || stack == NULL || f == NULL){
+        return -1;
     }
+    GNode * children = node->children;
+    if(children != NULL){
+        stack_push(stack, children);
+    }
+    while((children = children->next)){
+        if(children != NULL){
+            stack_push(stack, children);
+        }
+    }
+    printf("%d\n", stack_mem_used(stack)); //Stacker les enfants + log du nb d'enfants stacker
+    if(f == NULL){
+        return -1;
+    }
+    return f(node, stack); //Appel fonction de degradation avec le  noeud et ses enfants dans la pile
 }
 
-int degradationTaille(my_stack_t *pile){
-    zpixel * pixel = (zpixel *) stack_pop(pile);
-    return pixel->size*2-1;
+int degradationTaille(GNode * node, my_stack_t *pile){
+    zpixel *parent = (zpixel *) node->data;
+    return parent->size-1;
 }
 
-int degradationLuminosite(my_stack_t *pile){
-    return 0;
+int degradationLuminosite(GNode *node, my_stack_t *pile){
+    zpixel *parent = (zpixel *) node->data;
+    return 255-(luminosite(parent));
 }
 
-int degradationDistance(my_stack_t *pile){
-    return 0;
-}
-
-void stack_creation(GNode * node, gpointer data){
-    stack_push(data, node);   
+int degradationDistance(GNode *node, my_stack_t *pile){
+    zpixel * parent = (zpixel *) node->data;
+    unsigned int dist = 0, count = 0;
+    GNode * children;
+    while((children = stack_pop(pile))){
+        zpixel * child = (zpixel *) children->data;
+        dist += distance(parent, child);
+        count++;
+    }
+    dist /= count;
+    return dist;
 }

@@ -5,6 +5,7 @@
 
 #include <zpixel.h>
 #include <glib.h>
+#include <degradation.h>
 
 /**
  * Structure de données ayant pour but de faciliter le foreach des nodes

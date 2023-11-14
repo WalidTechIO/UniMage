@@ -10,5 +10,6 @@
             "binaryPath": "/mnt/c/Users/Walkloly/Downloads/projet/build/executable",
             "binaryArgs": []
         }
-    ]
+    ],
+    "C_Cpp.errorSquiggles": "disabled"
 }

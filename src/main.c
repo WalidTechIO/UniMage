@@ -3,6 +3,10 @@
 #include <tree.h>
 #include <degradation.h>
 
+int testF(GNode * node, my_stack_t * stack){
+    return 0;
+}
+
 /**
  * Fonction qui execute des tests sur le module zpixel
  */
@@ -50,7 +54,7 @@ int testModuleArbre(image * img){
         return -1;
     }
     printf("Arbre construit avec succes !\n");
-    switch(affiche_arbre(root, 7, img)){
+    switch(affiche_arbre(root, 54, img)){
         case -1:
             return -2;
             break;
@@ -67,32 +71,5 @@ int testModuleArbre(image * img){
     printf("Output : traitee.bmp\n");
 
     
-    
-    image * img2 = creerImage(17, 34);
-    createBitmapFile("original2.bmp", img2);
-    GNode * root2 = construire_arbre_zpixel(0, 0, 34, img2);
-    if (root2 == NULL)
-    {
-        return -1;
-    }
-    printf("Arbre 2 construit avec succes !\n");
-    switch (affiche_arbre(root2, 7, img2))
-    {
-    case -1:
-            return -2;
-            break;
-
-    case -2:
-            return -3;
-            break;
-
-    case 0:
-            printf("Parcours arbre 2 OK ! Projection OK!\n");
-            break;
-    }
-    createBitmapFile("traitee2.bmp", img2);
-    printf("Output : traitee2.bmp\n");
-
-    printf("Essai degradation: %d", degradation(root, MODE_TAILLE));
     return 0;
 }

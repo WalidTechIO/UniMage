@@ -9,14 +9,12 @@
 #define MODE_LUMINOSITE 1
 #define MODE_DISTANCE 2
 
-int degradation(GNode * node, const int mode);
+int degradation(GNode *node, my_stack_t *stack, int (*f)(GNode *, my_stack_t *));
 
-int degradationTaille(my_stack_t *pile);
+int degradationTaille(GNode *node, my_stack_t *pile);
 
-int degradationLuminosite(my_stack_t *pile);
+int degradationLuminosite(GNode *node, my_stack_t *pile);
 
-int degradationDistance(my_stack_t *pile);
-
-void stack_creation(GNode *node, gpointer data);
+int degradationDistance(GNode *node, my_stack_t *pile);
 
 #endif

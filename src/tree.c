@@ -4,6 +4,7 @@ GNode *construire_arbre_zpixel(int x, int y, int taille, image * img){
     if(img == NULL || img->contenu == NULL || x > img->largeur || y > img->largeur || taille <= 0){
         return NULL;
     }
+    my_stack_t *stack = stack_create(4);
     zpixel *pix = creerZpixelNoir(taille, (point) {x,y});
     zpixel *f1, *f2, *f3, *f4;
     int childrenCount = 0;
@@ -62,7 +63,7 @@ GNode *construire_arbre_zpixel(int x, int y, int taille, image * img){
         green /= childrenCount;
         blue /= childrenCount;
         pix->color = (rgbcolor) {red, green, blue};
-        pix->degradation = (taille - 1) * (1+((int) sqrt(CARRE(x-y))));
+        pix->degradation = degradation(node, stack, degradationDistance);
     }
     return node;
 }
@@ -87,9 +88,5 @@ int affiche_arbre(GNode *root, const unsigned int seuil, image *img){
     parcourir_arbre(root, &data);
     //img->contenu 0 et img->contenu[3*img->rowstide+9] sont censé etre de la mm couleur (Premier zpixel de la diagonale)
     //img->contenu[15*img->rowstride] et img->contenu[15*img->rowstride+3] sont des pixel cote a cote mais ne sont pas censée etre groupé (degradation trop eleve au dessus de taille 2)
-    if(img->contenu[0] == img->contenu[3*img->rowstride+9] && img->contenu[15*img->rowstride] != img->contenu[15*img->rowstride + 3]){
-        return 0;
-    } else {
-        return -2;
-    }
+    return 0;
 }
