@@ -21,7 +21,7 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 run: $(EXECUTABLE)
-	$(EXECUTABLE) > run.log
+	$(EXECUTABLE) # > run.log
 
 debug: $(EXECUTABLE)
 	gdb $(EXECUTABLE)
