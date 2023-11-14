@@ -5,6 +5,8 @@ GNode *construire_arbre_zpixel(int x, int y, int taille, image * img){
         return NULL;
     }
     zpixel *pix = creerZpixelNoir(taille, (point) {x,y});
+    zpixel *f1, *f2, *f3, *f4;
+    int childrenCount = 0;
     GNode *node = g_node_new(pix);
     if(taille == 1){
         int index = y *img->rowstride + x * 3;
@@ -13,23 +15,52 @@ GNode *construire_arbre_zpixel(int x, int y, int taille, image * img){
     } else {
         int red=0, green=0, blue=0;
         GNode *fgh = construire_arbre_zpixel(x, y, taille/2, img);
-        g_node_insert(node, 0, fgh);
+        if(fgh != NULL){
+            f1 = (zpixel *)fgh->data;
+            g_node_insert(node, 0, fgh);
+        } 
         GNode *fdh = construire_arbre_zpixel(x+taille/2, y, taille/2, img);
-        g_node_insert(node, 1, fdh);
+        if(fdh != NULL) {
+            f2 = (zpixel *) fdh->data;
+            g_node_insert(node, 1, fdh);
+        }
         GNode *fgb = construire_arbre_zpixel(x, y + taille/2, taille/2, img);
-        g_node_insert(node, 2, fgb);
+        if(fgb != NULL) {
+            f3 = (zpixel *)fgb->data;
+            g_node_insert(node, 2, fgb);
+        }
         GNode *fdb = construire_arbre_zpixel(x + taille / 2, y + taille / 2, taille / 2, img);
-        g_node_insert(node, 3, fdb);
-        zpixel *f1 = (zpixel *) fgh->data;
-        zpixel *f2 = (zpixel *) fdh->data;
-        zpixel *f3 = (zpixel *) fgb->data;
-        zpixel *f4 = (zpixel *) fdb->data;
-        red += f1->color.red + f2->color.red + f3->color.red + f4->color.red;
-        green += f1->color.green + f2->color.green + f3->color.green + f4->color.green;
-        blue += f1->color.blue + f2->color.blue + f3->color.blue + f4->color.blue;
-        red /= 4;
-        green /= 4;
-        blue /= 4;
+        if(fdb != NULL) {
+            f4 = (zpixel *)fdb->data;
+            g_node_insert(node, 3, fdb);
+        }
+        if(f1) {
+            red += f1->color.red;
+            green += f1->color.green;
+            blue += f1->color.blue;
+            childrenCount++;
+        }
+        if (f2) {
+            red += f2->color.red;
+            green += f2->color.green;
+            blue += f2->color.blue;
+            childrenCount++;
+        }
+        if (f3) {
+            red += f3->color.red;
+            green += f3->color.green;
+            blue += f3->color.blue;
+            childrenCount++;
+        }
+        if (f4) {
+            red += f4->color.red;
+            green += f4->color.green;
+            blue += f4->color.blue;
+            childrenCount++;
+        }
+        red /= childrenCount;
+        green /= childrenCount;
+        blue /= childrenCount;
         pix->color = (rgbcolor) {red, green, blue};
         pix->degradation = (taille - 1) * (1+((int) sqrt(CARRE(x-y))));
     }
