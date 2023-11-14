@@ -15,7 +15,7 @@ EXECUTABLE = $(BUILD_DIR)/executable
 all: $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJS)
-	$(CC) $^ -o $@ $(LDFLAGS)
+	$(CC) build/stack2.o $^ -o $@ $(LDFLAGS)
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@

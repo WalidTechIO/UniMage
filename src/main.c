@@ -1,6 +1,7 @@
 #include <utils.h>
 #include <zpixel.h>
 #include <tree.h>
+#include <degradation.h>
 
 /**
  * Fonction qui execute des tests sur le module zpixel
@@ -38,7 +39,6 @@ int testModuleArbre(image *img);
         case 0: 
             break;
     }
-
     free(monImage->contenu);
     free(monImage);
     return 0;
@@ -92,5 +92,7 @@ int testModuleArbre(image * img){
     }
     createBitmapFile("traitee2.bmp", img2);
     printf("Output : traitee2.bmp\n");
+
+    printf("Essai degradation: %d", degradation(root, MODE_TAILLE));
     return 0;
 }
