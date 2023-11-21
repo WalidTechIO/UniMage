@@ -3,78 +3,44 @@
 #include <tree.h>
 #include <degradation.h>
 
-int testModuleDegradation(image *img);
-void parcourir_arbre_degradation(GNode *root, gpointer data);
+void finApropos(GtkWidget * widget, gpointer data);
+void aboutButtonClicked(GtkWidget * widget, gpointer data);
+void create_window(GtkApplication *application, gpointer user_data);
 
 int main(int argc, char *argv[]){
-    printf("Début des tests !\n\n");
 
-    image * monImage = creerImage(16, 16);
-    if(monImage == NULL || monImage->contenu == NULL){
-        fprintf(stderr, "Impossible de generer une image de test");
-        return 0;
-    }
+    GtkApplication *app = gtk_application_new("un.image", G_APPLICATION_FLAGS_NONE);
+    if (app == NULL)
+        exit(1);
 
-    printf("Image de test:\noriginal.bmp");
-    if(createBitmapFile("original.bmp", monImage) == -1)
-        fprintf(stderr, "Erreur creation fichier bmp");
+    g_signal_connect(app, "activate", G_CALLBACK(create_window), NULL);
 
-    printf("\n\n\n===============================\nModule Degradation de zPixels\n===============================\n\n\n");
-    switch(testModuleDegradation(monImage)){
-        case -1:
-            fprintf(stderr, "Erreur construction arbre");
-            break;
+    g_application_run(G_APPLICATION(app), argc, argv);
 
-        case 0: 
-            break;
-    }
-    free(monImage->contenu);
-    free(monImage);
+    g_object_unref(app);
     return 0;
 }
 
-int testModuleDegradation(image * img){
-
-    printf("Construction de 3 arbres de zpixel ayant chacun un mode de degradation différent\n");
-
-    GNode * root = construire_arbre_zpixel(0, 0, 16, img, degradationLuminosite);
-    if(root == NULL){
-        return -1;
-    }
-    GNode *root1 = construire_arbre_zpixel(0, 0, 16, img, degradationTaille);
-    if (root == NULL){
-        return -1;
-    }
-    GNode * root2 = construire_arbre_zpixel(0, 0, 16, img, degradationDistance);
-    if(root == NULL){
-        return -1;
-    }
-
-    printf("Test arbre degradation lumineuse\n");
-    parcourir_arbre_degradation(root, NULL);
-    printf("Test arbre degradation taille\n");
-    parcourir_arbre_degradation(root, NULL);
-    printf("Test arbre degradation distance\n");
-    parcourir_arbre_degradation(root, NULL);
-
-    printf("Projection des images et enregistrement\n");
-    image *img1 = creerImage(16, 16), *img2 = creerImage(16, 16), *img3 = creerImage(16, 16);
-    affiche_arbre(root, 120, img1);
-    createBitmapFile("img1.bmp", img1);
-    affiche_arbre(root1, 4, img2);
-    createBitmapFile("img2.bmp", img2);
-    affiche_arbre(root2, 15, img3);
-    createBitmapFile("img3.bmp", img3);
-
-    return 0;
+void create_window(GtkApplication *application, gpointer user_data){
+    GtkBuilder *builder = gtk_builder_new_from_file("ui.glade");
+    GtkWidget *window = GTK_WIDGET(gtk_builder_get_object(builder, "window"));
+    GtkWidget *quit = GTK_WIDGET(gtk_builder_get_object(builder, "menuQuit"));
+    GtkWidget *aboutButton = GTK_WIDGET(gtk_builder_get_object(builder, "menuApropos"));
+    g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    g_signal_connect(quit, "activate", G_CALLBACK(gtk_main_quit), NULL);
+    g_signal_connect(aboutButton, "activate", G_CALLBACK(aboutButtonClicked), builder);
+    gtk_widget_show_all(window);
+    gtk_main();
 }
 
-void parcourir_arbre_degradation(GNode *root, gpointer data){
-    if(root != NULL){
-        g_node_children_foreach(root, G_TRAVERSE_ALL, parcourir_arbre_degradation, data);
-        zpixel * pix = (zpixel *) root->data;
-        if(pix->degradation == -1){
-            fprintf(stderr, "Erreur de calcul de la degradation");
-        }
-    }
+void aboutButtonClicked(GtkWidget * widget, gpointer data){
+    GtkBuilder *builder = GTK_BUILDER(data);
+    GtkWidget *aboutWindow = GTK_WIDGET(gtk_builder_get_object(builder, "Apropos"));
+    GtkWidget *finAbout = GTK_WIDGET(gtk_builder_get_object(builder, "finapropos"));
+    g_signal_connect(finAbout, "clicked", G_CALLBACK(finApropos), aboutWindow);
+    gtk_widget_show_all(aboutWindow);
+}
+
+void finApropos(GtkWidget * widget, gpointer data){
+    gtk_widget_hide(widget);
 }
