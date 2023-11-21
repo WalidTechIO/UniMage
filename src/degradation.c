@@ -14,11 +14,10 @@ int degradation(GNode *node, my_stack_t *stack, int (*f)(GNode *, my_stack_t *))
             stack_push(stack, children);
         }
     }
-    printf("%d\n", stack_mem_used(stack)); //Stacker les enfants + log du nb d'enfants stacker
     if(f == NULL){
         return -1;
     }
-    return f(node, stack); //Appel fonction de degradation avec le  noeud et ses enfants dans la pile
+    return f(node, stack); //Appel fonction de degradation avec le noeud et ses enfants dans la pile
 }
 
 int degradationTaille(GNode * node, my_stack_t *pile){

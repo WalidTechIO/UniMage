@@ -63,7 +63,7 @@ GNode *construire_arbre_zpixel(int x, int y, int taille, image * img){
         green /= childrenCount;
         blue /= childrenCount;
         pix->color = (rgbcolor) {red, green, blue};
-        pix->degradation = degradation(node, stack, degradationDistance);
+        pix->degradation = degradation(node, stack, degradationLuminosite);
     }
     return node;
 }

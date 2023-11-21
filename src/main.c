@@ -54,7 +54,7 @@ int testModuleArbre(image * img){
         return -1;
     }
     printf("Arbre construit avec succes !\n");
-    switch(affiche_arbre(root, 54, img)){
+    switch(affiche_arbre(root, 123, img)){
         case -1:
             return -2;
             break;
