@@ -9,6 +9,11 @@
             "cwd": "/mnt/c/Users/Walkloly/Downloads/projet/build",
             "binaryPath": "/mnt/c/Users/Walkloly/Downloads/projet/build/executable",
             "binaryArgs": []
+        },
+        {
+            "cwd": "/home/etudiants/licence3/walid.elouazizi/Téléchargements/unimage/build",
+            "binaryPath": "/home/etudiants/licence3/walid.elouazizi/Téléchargements/unimage/build/executable",
+            "binaryArgs": []
         }
     ],
     "C_Cpp.errorSquiggles": "disabled"

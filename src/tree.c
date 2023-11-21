@@ -1,6 +1,6 @@
 #include <tree.h>
 
-GNode *construire_arbre_zpixel(int x, int y, int taille, image * img){
+GNode *construire_arbre_zpixel(int x, int y, int taille, image * img, int (*f)(GNode *, my_stack_t *)){
     if(img == NULL || img->contenu == NULL || x > img->largeur || y > img->largeur || taille <= 0){
         return NULL;
     }
@@ -15,25 +15,25 @@ GNode *construire_arbre_zpixel(int x, int y, int taille, image * img){
         pix->color = color;
     } else {
         int red=0, green=0, blue=0;
-        GNode *fgh = construire_arbre_zpixel(x, y, taille/2, img);
+        GNode *fgh = construire_arbre_zpixel(x, y, taille/2, img, f);
         if(fgh != NULL){
             f1 = (zpixel *)fgh->data;
-            g_node_insert(node, 0, fgh);
-        } 
-        GNode *fdh = construire_arbre_zpixel(x+taille/2, y, taille/2, img);
+            g_node_insert(node, -1, fgh);
+        }
+        GNode *fdh = construire_arbre_zpixel(x + taille / 2, y, taille / 2, img, f);
         if(fdh != NULL) {
             f2 = (zpixel *) fdh->data;
-            g_node_insert(node, 1, fdh);
+            g_node_insert(node, -1, fdh);
         }
-        GNode *fgb = construire_arbre_zpixel(x, y + taille/2, taille/2, img);
+        GNode *fgb = construire_arbre_zpixel(x, y + taille / 2, taille / 2, img, f);
         if(fgb != NULL) {
             f3 = (zpixel *)fgb->data;
-            g_node_insert(node, 2, fgb);
+            g_node_insert(node, -1, fgb);
         }
-        GNode *fdb = construire_arbre_zpixel(x + taille / 2, y + taille / 2, taille / 2, img);
+        GNode *fdb = construire_arbre_zpixel(x + taille / 2, y + taille / 2, taille / 2, img, f);
         if(fdb != NULL) {
             f4 = (zpixel *)fdb->data;
-            g_node_insert(node, 3, fdb);
+            g_node_insert(node, -1, fdb);
         }
         if(f1) {
             red += f1->color.red;
@@ -63,15 +63,15 @@ GNode *construire_arbre_zpixel(int x, int y, int taille, image * img){
         green /= childrenCount;
         blue /= childrenCount;
         pix->color = (rgbcolor) {red, green, blue};
-        pix->degradation = degradation(node, stack, degradationLuminosite);
+        pix->degradation = degradation(node, stack, f);
     }
     return node;
 }
 
 void parcourir_arbre(GNode * root, gpointer data){
     treedata *dt = (treedata *)data;
-    zpixel * pix = (zpixel *) root->data;
-    image * img = (image *) dt->img;
+    zpixel *pix = (zpixel *) root->data;
+    image *img = (image *) dt->img;
     g_node_children_foreach(root, G_TRAVERSE_ALL, parcourir_arbre, data);
     if(pix->degradation < dt->seuil){
         if(projeter(pix, img) == -1) fprintf(stderr, "Erreur de projection du zpixel\n"); 

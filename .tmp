@@ -1,27 +1,3 @@
-/**
- * Fonction qui execute des tests sur le module tree
- */
-int testModuleTree(image *img);
-
-int testModuleTree(image * img){
-    // Test Arbre Glib
-    if(afficher_image(img) == -1) return -3;
-    createBitmapFile("original.bmp", img);
-    printf("\nConstruction d'un arbre de zpixel taille 5 recouvrant l'image faisant la moyenne des couleurs\n");
-    GTree *tree = build(5, img, BUILD_MOYENNE);
-    if(tree == NULL){
-        return -1;
-    }
-    printf("\nCalcul du nb de noeuds puis parcourt en projetant le zpixel sur l'image (apres projection on free le zpixel car plus besoin)\n");
-    if(projeter_arbre(tree, img) == -1){
-        return -2;
-    }
-    if(afficher_image(img) == -1) return -3;
-    printf("\nOn constate que la projection s'est bien effectué et on constate aussi que le gap n'a pas été modifier !\n");
-    createBitmapFile("pixelisee.bmp", img);
-    return 0;
-}
-
 void create_window(GtkApplication *application, gpointer user_data);
 
 void test(int argc, char *argv[]);

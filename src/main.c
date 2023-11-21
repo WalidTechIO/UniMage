@@ -3,18 +3,10 @@
 #include <tree.h>
 #include <degradation.h>
 
-int testF(GNode * node, my_stack_t * stack){
-    return 0;
-}
+int testModuleDegradation(image *img);
+void parcourir_arbre_degradation(GNode *root, gpointer data);
 
-/**
- * Fonction qui execute des tests sur le module zpixel
- */
-//int testModuleZPixel(image *img);
-int testModuleArbre(image *img);
-
- int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]){
     printf("Début des tests !\n\n");
 
     image * monImage = creerImage(16, 16);
@@ -27,15 +19,8 @@ int testModuleArbre(image *img);
     if(createBitmapFile("original.bmp", monImage) == -1)
         fprintf(stderr, "Erreur creation fichier bmp");
 
-    printf("\n\n\n===============================\nModule Arbre de zPixels\n===============================\n\n\n");
-    switch(testModuleArbre(monImage)){
-        case -3:
-            fprintf(stderr, "Comparaison des pixels echoué PROJECTION / SEUIL KO !");
-
-        case -2:
-            fprintf(stderr, "Image ou arbre NULL - Afficher arbre KO");
-            break;
-
+    printf("\n\n\n===============================\nModule Degradation de zPixels\n===============================\n\n\n");
+    switch(testModuleDegradation(monImage)){
         case -1:
             fprintf(stderr, "Erreur construction arbre");
             break;
@@ -48,28 +33,48 @@ int testModuleArbre(image *img);
     return 0;
 }
 
-int testModuleArbre(image * img){
-    GNode * root = construire_arbre_zpixel(0, 0, 16, img);
+int testModuleDegradation(image * img){
+
+    printf("Construction de 3 arbres de zpixel ayant chacun un mode de degradation différent\n");
+
+    GNode * root = construire_arbre_zpixel(0, 0, 16, img, degradationLuminosite);
     if(root == NULL){
         return -1;
     }
-    printf("Arbre construit avec succes !\n");
-    switch(affiche_arbre(root, 123, img)){
-        case -1:
-            return -2;
-            break;
-        
-        case -2:
-            return -3;
-            break;
-
-        case 0:
-            printf("Parcours arbre OK ! Projection OK!\n");
-            break;
+    GNode *root1 = construire_arbre_zpixel(0, 0, 16, img, degradationTaille);
+    if (root == NULL){
+        return -1;
     }
-    createBitmapFile("traitée.bmp", img);
-    printf("Output : traitee.bmp\n");
+    GNode * root2 = construire_arbre_zpixel(0, 0, 16, img, degradationDistance);
+    if(root == NULL){
+        return -1;
+    }
 
-    
+    printf("Test arbre degradation lumineuse\n");
+    parcourir_arbre_degradation(root, NULL);
+    printf("Test arbre degradation taille\n");
+    parcourir_arbre_degradation(root, NULL);
+    printf("Test arbre degradation distance\n");
+    parcourir_arbre_degradation(root, NULL);
+
+    printf("Projection des images et enregistrement\n");
+    image *img1 = creerImage(16, 16), *img2 = creerImage(16, 16), *img3 = creerImage(16, 16);
+    affiche_arbre(root, 120, img1);
+    createBitmapFile("img1.bmp", img1);
+    affiche_arbre(root1, 4, img2);
+    createBitmapFile("img2.bmp", img2);
+    affiche_arbre(root2, 15, img3);
+    createBitmapFile("img3.bmp", img3);
+
     return 0;
+}
+
+void parcourir_arbre_degradation(GNode *root, gpointer data){
+    if(root != NULL){
+        g_node_children_foreach(root, G_TRAVERSE_ALL, parcourir_arbre_degradation, data);
+        zpixel * pix = (zpixel *) root->data;
+        if(pix->degradation == -1){
+            fprintf(stderr, "Erreur de calcul de la degradation");
+        }
+    }
 }
