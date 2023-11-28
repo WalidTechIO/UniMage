@@ -13,10 +13,12 @@ typedef struct appdata {
     GtkRadioButton *seuil;
     GtkAdjustment *adjustment;
 } appdata;
+
 void create_window(GtkApplication *application, gpointer user_data);
 void finApropos(GtkWidget * widget, gpointer data);
 void aboutButtonClicked(GtkWidget * widget, gpointer data);
 void openFile(GtkWidget * widget, gpointer data);
+void saveAs(GtkWidget * widget, gpointer data);
 void seuilPressed(GtkWidget * widget, gpointer data);
 void moyennePressed(GtkWidget *widget, gpointer data);
 void deltaPressed(GtkWidget *widget, gpointer data);
@@ -43,6 +45,7 @@ void create_window(GtkApplication *application, gpointer user_data){
     GtkWidget *quit = GTK_WIDGET(gtk_builder_get_object(builder, "menuQuit"));
     GtkWidget *aboutButton = GTK_WIDGET(gtk_builder_get_object(builder, "menuApropos"));
     GtkWidget *openButton = GTK_WIDGET(gtk_builder_get_object(builder, "menuOuvrir"));
+    GtkWidget *saveButton = GTK_WIDGET(gtk_builder_get_object(builder, "menuSave"));
     GtkWidget *aboutWindow = GTK_WIDGET(gtk_builder_get_object(builder, "Apropos"));
     GtkWidget *finAbout = GTK_WIDGET(gtk_builder_get_object(builder, "finapropos"));
 
@@ -63,6 +66,7 @@ void create_window(GtkApplication *application, gpointer user_data){
     g_signal_connect(quit, "activate", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect(aboutButton, "activate", G_CALLBACK(aboutButtonClicked), aboutWindow);
     g_signal_connect(openButton, "activate", G_CALLBACK(openFile), imgOriginal);
+    g_signal_connect(saveButton, "activate", G_CALLBACK(saveAs), imgTraitee);
     g_signal_connect(seuil, "pressed", G_CALLBACK(seuilPressed), &dt);
     g_signal_connect(moyenne, "pressed", G_CALLBACK(moyennePressed), &dt);
     g_signal_connect(delta, "pressed", G_CALLBACK(deltaPressed), &dt);
@@ -87,6 +91,21 @@ void openFile(GtkWidget *widget, gpointer data){
         gtk_image_set_from_file(GTK_IMAGE(originalImg), gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog)));
     }
     gtk_widget_destroy(dialog);
+}
+
+void saveAs(GtkWidget * widget, gpointer data){
+    GtkWidget * traiteeImg = GTK_WIDGET(data);
+    GdkPixbuf * pixbuf = gtk_image_get_pixbuf(GTK_IMAGE(traiteeImg));
+    image * img = NULL;
+    if(pixbuf != NULL){
+        img = creerImagePixbuf(pixbuf);
+        GtkWidget *dialog = gtk_file_chooser_dialog_new("Enregistrer sous", NULL, GTK_FILE_CHOOSER_ACTION_SAVE, "Sauvegarder", NULL);
+        gint res = gtk_dialog_run(GTK_DIALOG(dialog));
+        if (res == GTK_FILE_CHOOSER_ACTION_OPEN){
+            createBitmapFile(gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog)), img);
+        }
+        gtk_widget_destroy(dialog);
+    }
 }
 
 void seuilPressed(GtkWidget *widget, gpointer data){
@@ -142,7 +161,5 @@ void rendu(appdata * dt){
         sprintf(labelTraiteeS, "%d zone de pixels", g_node_n_nodes(node, G_TRAVERSE_ALL));
         gtk_label_set_text(dt->labelOriginal, labelOriginalS);
         gtk_label_set_text(dt->labelTraitee, labelTraiteeS);
-        createBitmapFile("rendu.bmp", img);
-        g_print("Rendu effectué ! Pensez a sauvegarder rendu.bmp si toujours pas de sauvegarde\n");
     }
 }
