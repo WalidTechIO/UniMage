@@ -152,3 +152,12 @@ image * creerImage(unsigned int width, unsigned int height){
     img->hauteur = height;
     return img;
 }
+
+image *creerImagePixbuf(GdkPixbuf *pixbuf){
+    image *img = (image *)malloc(sizeof(image));
+    img->hauteur = gdk_pixbuf_get_height(pixbuf);
+    img->largeur = gdk_pixbuf_get_width(pixbuf);
+    img->rowstride = gdk_pixbuf_get_rowstride(pixbuf);
+    img->contenu = (unsigned char *)gdk_pixbuf_get_pixels(pixbuf);
+    return img;
+}

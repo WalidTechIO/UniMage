@@ -14,6 +14,11 @@
             "cwd": "/home/etudiants/licence3/walid.elouazizi/Téléchargements/unimage/build",
             "binaryPath": "/home/etudiants/licence3/walid.elouazizi/Téléchargements/unimage/build/executable",
             "binaryArgs": []
+        },
+        {
+            "cwd": "/mnt/c/dev/cours/C/pca/build",
+            "binaryPath": "/mnt/c/dev/cours/C/pca/build/executable",
+            "binaryArgs": []
         }
     ],
     "C_Cpp.errorSquiggles": "disabled"

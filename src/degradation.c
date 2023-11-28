@@ -26,8 +26,7 @@ int degradationTaille(GNode * node, my_stack_t *pile){
 }
 
 int degradationLuminosite(GNode *node, my_stack_t *pile){
-    zpixel *parent = (zpixel *) node->data;
-    GNode * children = node->children;
+    GNode * children;
     int lumax = 0;
     //On recherche le zpixel le plus lumineux parmis les enfants
     while((children = stack_pop(pile))){
@@ -48,5 +47,6 @@ int degradationDistance(GNode *node, my_stack_t *pile){
         dist += distance(parent, child);
         count++;
     }
-    return dist / count;
+    dist /= count;
+    return dist * (parent->size-1);
 }

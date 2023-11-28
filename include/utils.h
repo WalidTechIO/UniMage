@@ -26,5 +26,9 @@ int createBitmapFile(const char *filename, image *img);
  * Genere une image de width*height avec un gap valide pour du BMP et des pixels de couleurs aléatoires
 */
 image * creerImage(unsigned int width, unsigned int height);
+/**
+ * Enregistre un pixbuf dans notre format d'image
+*/
+image *creerImagePixbuf(GdkPixbuf * pixbuf);
 
 #endif
