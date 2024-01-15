@@ -9,7 +9,9 @@
 #define MODE_LUMINOSITE 1
 #define MODE_DISTANCE 2
 
-int degradation(GNode *node, my_stack_t *stack, int (*f)(GNode *, my_stack_t *));
+typedef int (*DegradationFunction)(GNode *, my_stack_t *);
+
+int degradation(GNode *node, my_stack_t *stack, DegradationFunction);
 
 int degradationTaille(GNode *node, my_stack_t *pile);
 

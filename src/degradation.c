@@ -1,6 +1,6 @@
 #include <degradation.h>
 
-int degradation(GNode *node, my_stack_t *stack, int (*f)(GNode *, my_stack_t *))
+int degradation(GNode *node, my_stack_t *stack, DegradationFunction f)
 {
     if(node == NULL || stack == NULL || f == NULL){
         return -1;
@@ -9,7 +9,7 @@ int degradation(GNode *node, my_stack_t *stack, int (*f)(GNode *, my_stack_t *))
     if(children != NULL){
         stack_push(stack, children);
     }
-    while((children = children->next)){
+    while(children != NULL && (children = children->next)){
         if(children != NULL){
             stack_push(stack, children);
         }
@@ -48,5 +48,6 @@ int degradationDistance(GNode *node, my_stack_t *pile){
         count++;
     }
     dist /= count;
-    return dist * (parent->size-1);
+    dist *= (parent->size-1);
+    return dist;
 }

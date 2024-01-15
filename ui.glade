@@ -27,7 +27,7 @@
             <property name="height-request">10</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
-            <property name="label" translatable="yes">Version 0.4 novembre 2023
+            <property name="label" translatable="yes">Version 1.0 janvier 2024
 
 Auteur: EL OUAZIZI Walid
 Université de Bretagne Occidentale</property>
@@ -85,21 +85,19 @@ Université de Bretagne Occidentale</property>
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <child>
-                      <object class="GtkImageMenuItem" id="menuOuvrir">
-                        <property name="label">Ouvrir</property>
+                      <object class="GtkMenuItem" id="menuOuvrir">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Ouvrir</property>
                         <property name="use-underline">True</property>
-                        <property name="use-stock">True</property>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkImageMenuItem" id="menuSave">
-                        <property name="label">Enregistrer sous</property>
+                      <object class="GtkMenuItem" id="menuSave">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Enregistrer sous</property>
                         <property name="use-underline">True</property>
-                        <property name="use-stock">True</property>
                       </object>
                     </child>
                     <child>
@@ -109,12 +107,11 @@ Université de Bretagne Occidentale</property>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkImageMenuItem" id="menuQuit">
-                        <property name="label">Quitter</property>
+                      <object class="GtkMenuItem" id="menuQuit">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Quitter</property>
                         <property name="use-underline">True</property>
-                        <property name="use-stock">True</property>
                       </object>
                     </child>
                   </object>
@@ -132,12 +129,11 @@ Université de Bretagne Occidentale</property>
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <child>
-                      <object class="GtkImageMenuItem" id="menuApropos">
-                        <property name="label">A propos</property>
+                      <object class="GtkMenuItem" id="menuApropos">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">A propos</property>
                         <property name="use-underline">True</property>
-                        <property name="use-stock">True</property>
                       </object>
                     </child>
                   </object>
@@ -203,7 +199,7 @@ Université de Bretagne Occidentale</property>
                     <property name="orientation">vertical</property>
                     <child>
                       <object class="GtkRadioButton" id="delta">
-                        <property name="label" translatable="yes">delta</property>
+                        <property name="label" translatable="yes">Delta</property>
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                         <property name="receives-default">False</property>
@@ -218,7 +214,7 @@ Université de Bretagne Occidentale</property>
                     </child>
                     <child>
                       <object class="GtkRadioButton" id="seuil">
-                        <property name="label" translatable="yes">seuil</property>
+                        <property name="label" translatable="yes">Seuil</property>
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                         <property name="receives-default">False</property>
@@ -234,7 +230,7 @@ Université de Bretagne Occidentale</property>
                     </child>
                     <child>
                       <object class="GtkRadioButton" id="moyenne">
-                        <property name="label" translatable="yes">moyenne</property>
+                        <property name="label" translatable="yes">Moyenne</property>
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                         <property name="receives-default">False</property>

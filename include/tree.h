@@ -19,7 +19,7 @@ typedef struct treedata {
 /**
  * Fonction qui construit un arbre
 */
-GNode *construire_arbre_zpixel(int x, int y, int taille, image *img, int (*f)(GNode *, my_stack_t *));
+GNode* construire_arbre_zpixel(int x, int y, int taille, image *img, int (*f)(GNode *, my_stack_t *));
 
 /**
  * Fonction récurvise qui projete sur une image un noeud et tout ses enfants selon un seuil de degradation

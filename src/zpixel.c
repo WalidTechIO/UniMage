@@ -57,7 +57,7 @@ int projeter(zpixel * ptr, image * image){
     point pos = ptr->pos;
 
     //On redefinis size dans le cas d'un debordement
-    int size_h = ptr->size, size_l = size_h; //SURTOUT PAS UNSIGNED de maniere a ce que si size-h ou size_l est négatif on effectue 0 tour de boucle
+    int size_h = ptr->size, size_l = size_h;
     if(size_h + pos.y > image->hauteur){
         size_h -= size_h - (image->hauteur - pos.y);
     }
@@ -81,6 +81,6 @@ int afficher_zpixel(zpixel *ptr){
     if(ptr == NULL){
         return -1;
     }
-    printf("Zpixel: taille: %3d, Pos x: %3d, Pos y: %3d, RGB: (%3d,%3d,%3d), luminosité: %3d, saturation: %3d, degradation: %3d\n", ptr->size, ptr->pos.x, ptr->pos.y, ptr->color.red, ptr->color.green, ptr->color.blue, luminosite(ptr), saturation(ptr), ptr->degradation);
+    printf("       Infos zone de pixel: taille: %3d, Pos x: %3d, Pos y: %3d, RGB: (%3d,%3d,%3d)\n", ptr->size, ptr->pos.x, ptr->pos.y, ptr->color.red, ptr->color.green, ptr->color.blue);
     return 0;
 }

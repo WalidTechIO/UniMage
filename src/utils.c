@@ -118,19 +118,14 @@ int createBitmapFile(const char *filename, image *img)
 }
 
 image * creerImage(unsigned int width, unsigned int height){
-    srand(time(NULL));
     if(width<=0 || height <=0){
         return NULL;
     }
     unsigned int gap = 4 - (width * 3) % 4; if(gap == 4) gap = 0;
     unsigned int rowstride = width * 3 + gap;
-    unsigned char *contenuImg = (unsigned char *) malloc(height * rowstride * sizeof(unsigned char));
+    unsigned char *contenuImg = (unsigned char *) calloc(height * rowstride, sizeof(unsigned char));
     if(contenuImg == NULL){
         return NULL;
-    }
-    for (int i = 0; i < height * rowstride; i++)
-    {
-        contenuImg[i] = rand() % 256; // On remplis tout nos octets par des valeurs aléatoires
     }
     for(int i = 0; i < height; i++){
         int idx = i * rowstride + 3 * width;
@@ -154,10 +149,24 @@ image * creerImage(unsigned int width, unsigned int height){
 }
 
 image *creerImagePixbuf(GdkPixbuf *pixbuf){
+    if(pixbuf==NULL){
+        return NULL;
+    }
     image *img = (image *)malloc(sizeof(image));
     img->hauteur = gdk_pixbuf_get_height(pixbuf);
     img->largeur = gdk_pixbuf_get_width(pixbuf);
     img->rowstride = gdk_pixbuf_get_rowstride(pixbuf);
     img->contenu = (unsigned char *)gdk_pixbuf_get_pixels(pixbuf);
     return img;
+}
+
+void destroyNodeTree(GNode *node, gpointer data)
+{
+    if (node == NULL)
+    {
+        return;
+    }
+    g_node_children_foreach(node, G_TRAVERSE_ALL, destroyNodeTree, NULL);
+    free(node->data);
+    g_node_destroy(node);
 }

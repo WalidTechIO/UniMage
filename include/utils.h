@@ -23,12 +23,16 @@ int afficher_image(image *img);
  */
 int createBitmapFile(const char *filename, image *img);
 /**
- * Genere une image de width*height avec un gap valide pour du BMP et des pixels de couleurs aléatoires
+ * Genere une image de width*height avec un gap valide pour du BMP et des pixels de couleur noire
 */
 image * creerImage(unsigned int width, unsigned int height);
 /**
  * Enregistre un pixbuf dans notre format d'image
 */
 image *creerImagePixbuf(GdkPixbuf * pixbuf);
+/**
+ * Detruit un arbre de GNode en profondeur
+*/
+void destroyNodeTree(GNode *node, gpointer data);
 
 #endif
