@@ -65,7 +65,7 @@ void create_window(GtkApplication *application, gpointer user_data){
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect(quit, "activate", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect(aboutButton, "activate", G_CALLBACK(aboutButtonClicked), aboutWindow);
-    g_signal_connect(openButton, "activate", G_CALLBACK(openFile), &dt);
+    g_signal_connect(openButton, "activate", G_CALLBACK(openFile), imgOriginal);
     g_signal_connect(saveButton, "activate", G_CALLBACK(saveAs), imgTraitee);
     g_signal_connect(seuil, "pressed", G_CALLBACK(seuilPressed), &dt);
     g_signal_connect(moyenne, "pressed", G_CALLBACK(moyennePressed), &dt);
@@ -84,13 +84,12 @@ void finApropos(GtkWidget * widget, gpointer data){
 }
 
 void openFile(GtkWidget *widget, gpointer data){
-    appdata *dt = (appdata *)data;
+    GtkWidget * originalImg = GTK_WIDGET(data);
     GtkWidget *dialog = gtk_file_chooser_dialog_new("Sélectionner un fichier", NULL, GTK_FILE_CHOOSER_ACTION_OPEN, "Choisir", NULL);
     gint res = gtk_dialog_run(GTK_DIALOG(dialog));
     if(res == GTK_FILE_CHOOSER_ACTION_OPEN){
-        gtk_image_set_from_file(dt->imgOriginal, gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog)));
+        gtk_image_set_from_file(GTK_IMAGE(originalImg), gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog)));
     }
-    rendu(dt);
     gtk_widget_destroy(dialog);
 }
 
