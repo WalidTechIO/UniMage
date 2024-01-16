@@ -1,5 +1,14 @@
 #include <tree.h>
 
+/**
+ * Structure de données ayant pour but de faciliter le foreach des nodes
+ */
+typedef struct treedata
+{
+    const unsigned int seuil;
+    image *img;
+} treedata;
+
 GNode* construire_arbre_zpixel(int x, int y, int taille, image * img, DegradationFunction f){
     if(img == NULL || img->contenu == NULL || x >= img->largeur || y >= img->hauteur || taille <= 0){
         return NULL;
@@ -64,6 +73,11 @@ GNode* construire_arbre_zpixel(int x, int y, int taille, image * img, Degradatio
         blue /= childrenCount;
         pix->color = (rgbcolor) {red, green, blue};
         pix->degradation = degradation(node, stack, f);
+        if(pix->degradation<0){
+            stack_remove(stack);
+            destroyNodeTree(node, NULL);
+            return NULL;
+        }
     }
     stack_remove(stack);
     return node;

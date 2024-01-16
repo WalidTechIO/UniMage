@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
 void create_window(GtkApplication *application, gpointer user_data){
 
     //Récupération du chemin du fichier Glade selon l'OS
-    char uipath[500];
+    char uipath[500] = "";
     #ifdef _WIN32
         _pgmptr[strlen(_pgmptr)-14] = '\0';
         if(strlen(_pgmptr) > 490){

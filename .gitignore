@@ -1,9 +1,4 @@
-/Dossier/
-/build/share
-/build/lib
-*.dll
-*.o
-*.iss
-*.bmp
+/build/
+*.is
 *_setup.exe
 *tests/build*
