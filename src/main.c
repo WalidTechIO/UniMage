@@ -10,8 +10,8 @@
     #include <unistd.h>
 #endif
 
-#define MAX_WIDTH_IMG 400
-#define MAX_HEIGHT_IMG 650
+#define MAX_WIDTH_IMG 530
+#define MAX_HEIGHT_IMG 900
 
 //Données d'etat d'application
 typedef struct appdata {
@@ -23,10 +23,8 @@ typedef struct appdata {
     GtkRadioButton *delta;      //Bouton delta
     GtkRadioButton *seuil;      //Bouton seuil
     GtkAdjustment *adjustment;  //Ajustement curseur
-    GdkPixbuf *pixbuf;          //Pixbuf pour traitement
-    GdkPixbuf *scaledO;         //Pixbuf original scalé
+    GdkPixbuf *pixbuf;          //Pixbuf original
     GdkPixbuf *traitement;      //Pixbuf de travail
-    GdkPixbuf *scaledT;         //Pixbuf de travail scalé
     GNode *node;                //Arbre determine selon f
     DegradationFunction f;      //Methode de degradation courante
     double ratio;
@@ -157,7 +155,7 @@ void create_window(GtkApplication *application, gpointer user_data){
     g_object_unref(builder);
 
     //Construction d'une instance d'etat application
-    appdata dt = {GTK_LABEL(labelOriginal), GTK_LABEL(labelTraitee), GTK_IMAGE(imgOriginal), GTK_IMAGE(imgTraitee), GTK_RADIO_BUTTON(moyenne), GTK_RADIO_BUTTON(delta), GTK_RADIO_BUTTON(seuil), adjustment, NULL, NULL, NULL, NULL, NULL, NULL, 1};
+    appdata dt = {GTK_LABEL(labelOriginal), GTK_LABEL(labelTraitee), GTK_IMAGE(imgOriginal), GTK_IMAGE(imgTraitee), GTK_RADIO_BUTTON(moyenne), GTK_RADIO_BUTTON(delta), GTK_RADIO_BUTTON(seuil), adjustment, NULL, NULL, NULL, NULL, 1};
 
     //Définition mode d'entrée
     deltaPressed(NULL, &dt);
@@ -165,6 +163,8 @@ void create_window(GtkApplication *application, gpointer user_data){
     //Si un fichier est spécifié definition en tant qu'original puis appel mode d'entrée
     if(strlen(user_data) > 0) {
         loadFile(&dt, user_data);
+        build(&dt);
+        rendu(&dt);
     }
 
     //Connexion des signaux
@@ -185,15 +185,12 @@ void create_window(GtkApplication *application, gpointer user_data){
 
     if(dt.pixbuf != NULL) g_clear_object(&dt.pixbuf); //Destruction du pixbuf si existant
     if(dt.traitement != NULL) g_clear_object(&dt.traitement);
-    if(dt.scaledT != NULL) g_clear_object(&dt.scaledT);
-    if(dt.scaledO != NULL) g_clear_object(&dt.scaledO);
 
     destroyNodeTree(dt.node, NULL); //Destruction de l'arbre si existant
 }
 
 void loadFile(appdata * dt, char* filename)
 {
-    g_clear_object(&dt->scaledO);
     g_clear_object(&dt->pixbuf);
     dt->pixbuf = gdk_pixbuf_new_from_file(filename,NULL);
     dt->ratio = 1;
@@ -206,8 +203,12 @@ void loadFile(appdata * dt, char* filename)
         if(dt->ratio*width > MAX_WIDTH_IMG){
             dt->ratio = MAX_WIDTH_IMG / width;
         }
-        dt->scaledO = gdk_pixbuf_scale_simple(dt->pixbuf,dt->ratio*width,dt->ratio*height,GDK_INTERP_BILINEAR);
-        gtk_image_set_from_pixbuf(dt->imgOriginal, dt->scaledO);
+        if(dt->ratio != 1) {
+            GdkPixbuf * tmp = gdk_pixbuf_scale_simple(dt->pixbuf, dt->ratio * width, dt->ratio * height, GDK_INTERP_BILINEAR);
+            g_clear_object(&dt->pixbuf);
+            dt->pixbuf = tmp;
+        }
+        gtk_image_set_from_pixbuf(dt->imgOriginal, dt->pixbuf);
     }
 }
 
@@ -249,9 +250,7 @@ void rendu(appdata * dt)
     if (img != NULL && img->contenu != NULL && dt->node != NULL)
     {
         affiche_arbre(dt->node, (unsigned int)gtk_adjustment_get_value(dt->adjustment), img);
-        g_clear_object(&dt->scaledT);
-        dt->scaledT = gdk_pixbuf_scale_simple(dt->traitement, img->largeur*dt->ratio, img->hauteur*dt->ratio, GDK_INTERP_BILINEAR);
-        gtk_image_set_from_pixbuf(dt->imgTraitee, dt->scaledT);
+        gtk_image_set_from_pixbuf(dt->imgTraitee, dt->traitement);
     }
     free(img);
 }
@@ -299,18 +298,20 @@ void saveAs(GtkWidget * widget, gpointer data)
 {
     appdata *dt = (appdata *) data;
     if(dt->traitement != NULL){
-        image * img = creerImagePixbuf(dt->traitement);
         GtkWidget *dialog = gtk_file_chooser_dialog_new("Enregistrer sous", NULL, GTK_FILE_CHOOSER_ACTION_SAVE, "Sauvegarder", GTK_RESPONSE_ACCEPT, "Annuler", GTK_RESPONSE_CANCEL, NULL);
         gint res = gtk_dialog_run(GTK_DIALOG(dialog));
         switch (res){
             case GTK_RESPONSE_ACCEPT:
+                GdkPixbuf * sortie = gdk_pixbuf_scale_simple(dt->traitement, (1/dt->ratio)*gdk_pixbuf_get_width(dt->traitement), (1/dt->ratio)*gdk_pixbuf_get_height(dt->traitement), GDK_INTERP_BILINEAR);
+                image * img = creerImagePixbuf(sortie);
                 createBitmapFile(gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog)), img);
+                g_clear_object(&sortie);
+                free(img);
                 break;
             case GTK_RESPONSE_CANCEL:
                 break;
         }
         gtk_widget_destroy(dialog);
-        free(img);
     }
 }
 
