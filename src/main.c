@@ -1,75 +1,14 @@
-#include <utils.h>
-#include <zpixel.h>
-#include <tree.h>
-#include <degradation.h>
-#include <string.h>
-#ifdef _WIN32
-    #include <windows.h>
-#endif
-#ifdef linux
-    #include <unistd.h>
-#endif
+#include <main.h>
 
-#define MAX_WIDTH_IMG 530
-#define MAX_HEIGHT_IMG 900
-
-//Données d'etat d'application
-typedef struct appdata {
-    GtkLabel *labelOriginal;    //Label sous l'image original
-    GtkLabel *labelTraitee;     //Label sous l'image traitée
-    GtkImage *imgOriginal;      //Image original
-    GtkImage *imgTraitee;       //Image traitée
-    GtkRadioButton *moyenne;    //Bouton moyenne
-    GtkRadioButton *delta;      //Bouton delta
-    GtkRadioButton *seuil;      //Bouton seuil
-    GtkAdjustment *adjustment;  //Ajustement curseur
-    GdkPixbuf *pixbuf;          //Pixbuf original
-    GdkPixbuf *traitement;      //Pixbuf de travail
-    GNode *node;                //Arbre determine selon f
-    DegradationFunction f;      //Methode de degradation courante
-    double ratio;
-} appdata;
-
-
-/**
- * Construit l'UI, inisialise l'etat et demarre le mainloop
-*/
-void create_window(GtkApplication *application, gpointer user_data);
-/**
- * Met a jour l'ajustement selon une valeur max et assure la stabilité de celui-ci au changement de mode
-*/
-void change_mode(appdata * dt, int max);
-/**
- * Defini le pixbuf de l'etat courant comme copie de l'image original
-*/
-void get_original_pixbuf(appdata *dt);
-/**
- * Evalue l'arbre node selon la methode de degradation courante
-*/
-void build(appdata *dt);
-/**
- * Effectue le rendu de l'arbre node selon le seuil courant
-*/
-void rendu(appdata * dt);
-
-void loadFile(appdata * dt, char* filename);
-
-//Signaux de l'application
-void aboutButtonClicked(GtkWidget * widget, gpointer data);
-void finApropos(GtkWidget * widget, gpointer data);
-void openFile(GtkWidget * widget, gpointer data);
-void saveAs(GtkWidget * widget, gpointer data);
-void seuilPressed(GtkWidget * widget, gpointer data);
-void moyennePressed(GtkWidget *widget, gpointer data);
-void deltaPressed(GtkWidget *widget, gpointer data);
-void adjustmentChanged(GtkWidget * widget, gpointer data);
+#define MAX_WIDTH_IMG 650 //Largeur maximale d'une image sur l'UI
+#define MAX_HEIGHT_IMG 900 //Hauteur maximale d'une image sur l'UI
 
 int main(int argc, char *argv[])
 {
     //Définition de l'application selon l'OS
     char launchFile[500] = "";
     #ifdef _WIN32
-        //FreeConsole();
+        FreeConsole();
         GtkApplication *app = gtk_application_new("un.image", G_APPLICATION_DEFAULT_FLAGS);
     #endif
     #ifdef linux
@@ -99,7 +38,7 @@ int main(int argc, char *argv[])
     g_application_run(G_APPLICATION(app), argc, argv);
 
     //Destruction de l'application et sortie du programme
-    g_object_unref(app);
+    g_clear_object(&app);
     
     return 0;
 }
@@ -139,7 +78,7 @@ void create_window(GtkApplication *application, gpointer user_data){
     GtkWidget *aboutButton = GTK_WIDGET(gtk_builder_get_object(builder, "menuApropos"));
     GtkWidget *openButton = GTK_WIDGET(gtk_builder_get_object(builder, "menuOuvrir"));
     GtkWidget *saveButton = GTK_WIDGET(gtk_builder_get_object(builder, "menuSave"));
-    GtkWidget *finAbout = GTK_WIDGET(gtk_builder_get_object(builder, "finapropos"));
+    GtkWidget *okAbout = GTK_WIDGET(gtk_builder_get_object(builder, "okApropos"));
 
     //Récupération des données utiles a l'etat de l'application
     GtkWidget *imgOriginal = GTK_WIDGET(gtk_builder_get_object(builder, "original"));
@@ -152,10 +91,10 @@ void create_window(GtkApplication *application, gpointer user_data){
     GtkAdjustment *adjustment = GTK_ADJUSTMENT(gtk_builder_get_object(builder, "adjustment2"));
 
     //Liberation du builder
-    g_object_unref(builder);
+    g_clear_object(&builder);
 
     //Construction d'une instance d'etat application
-    appdata dt = {GTK_LABEL(labelOriginal), GTK_LABEL(labelTraitee), GTK_IMAGE(imgOriginal), GTK_IMAGE(imgTraitee), GTK_RADIO_BUTTON(moyenne), GTK_RADIO_BUTTON(delta), GTK_RADIO_BUTTON(seuil), adjustment, NULL, NULL, NULL, NULL, 1};
+    appdata dt = {GTK_LABEL(labelOriginal), GTK_LABEL(labelTraitee), GTK_IMAGE(imgOriginal), GTK_IMAGE(imgTraitee), GTK_RADIO_BUTTON(moyenne), GTK_RADIO_BUTTON(delta), GTK_RADIO_BUTTON(seuil), adjustment, NULL, NULL, NULL, NULL, NULL, 1};
 
     //Définition mode d'entrée
     deltaPressed(NULL, &dt);
@@ -163,130 +102,178 @@ void create_window(GtkApplication *application, gpointer user_data){
     //Si un fichier est spécifié definition en tant qu'original puis appel mode d'entrée
     if(strlen(user_data) > 0) {
         loadFile(&dt, user_data);
-        build(&dt);
-        rendu(&dt);
     }
 
     //Connexion des signaux
     g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);                   // Close request (OS)
     g_signal_connect(quit, "activate", G_CALLBACK(gtk_main_quit), NULL);                    // Bouton Quitter (Filebar)
-    g_signal_connect(finAbout, "clicked", G_CALLBACK(finApropos), aboutWindow);             // Bouton OK (Fenetre a propos)
-    g_signal_connect(aboutButton, "activate", G_CALLBACK(aboutButtonClicked), aboutWindow); // Bouton A propos (Filebar)
-    g_signal_connect(openButton, "activate", G_CALLBACK(openFile), &dt);                    // Bouton Ouvrir (Filebar)
-    g_signal_connect(saveButton, "activate", G_CALLBACK(saveAs), &dt);               // Bouton Enregistrer sous (Filebar)
+    g_signal_connect(okAbout, "clicked", G_CALLBACK(okAboutPressed), aboutWindow);                 // Bouton OK (Fenetre a propos)
+    g_signal_connect(aboutButton, "activate", G_CALLBACK(aboutButtonPressed), aboutWindow); // Bouton A propos (Filebar)
+    g_signal_connect(openButton, "activate", G_CALLBACK(openFilePressed), &dt);                    // Bouton Ouvrir (Filebar)
+    g_signal_connect(saveButton, "activate", G_CALLBACK(saveAsPressed), &dt);                      // Bouton Enregistrer sous (Filebar)
     g_signal_connect(seuil, "pressed", G_CALLBACK(seuilPressed), &dt);                      // Bouton seuil (Opération)
-    g_signal_connect(moyenne, "pressed", G_CALLBACK(moyennePressed), &dt);                  // Bouton moyenne (Opération)
     g_signal_connect(delta, "pressed", G_CALLBACK(deltaPressed), &dt);                      // Bouton delta (Opération)
+    g_signal_connect(moyenne, "pressed", G_CALLBACK(moyennePressed), &dt);                  // Bouton moyenne (Opération)
     g_signal_connect(adjustment, "value_changed", G_CALLBACK(adjustmentChanged), &dt);      // Ajustement curseur (Opération)
 
     //Affichage fenetre principale et lancement mainloop
     gtk_widget_show_all(window);
     gtk_main();
 
-    if(dt.pixbuf != NULL) g_clear_object(&dt.pixbuf); //Destruction du pixbuf si existant
-    if(dt.traitement != NULL) g_clear_object(&dt.traitement);
+    if(dt.pixbufOriginalScaled != NULL) g_clear_object(&dt.pixbufOriginalScaled); //Destruction du pixbuf si existant
+    if(dt.pixbufCalcul != NULL) g_clear_object(&dt.pixbufCalcul);
+    if(dt.pixbufOriginal != NULL) g_clear_object(&dt.pixbufOriginal);
 
-    destroyNodeTree(dt.node, NULL); //Destruction de l'arbre si existant
+    detruire_arbre(&dt.node); //Destruction de l'arbre si existant
 }
 
 void loadFile(appdata * dt, char* filename)
 {
-    g_clear_object(&dt->pixbuf);
-    dt->pixbuf = gdk_pixbuf_new_from_file(filename,NULL);
+    //On nettoie tout nos pixbuf et notre arbre
+    g_clear_object(&dt->pixbufOriginal);
+    g_clear_object(&dt->pixbufOriginalScaled);
+    g_clear_object(&dt->pixbufCalcul);
+    detruire_arbre(&dt->node);
+    //On remet l'UI en etat "sans fichier"
+    gtk_label_set_text(dt->labelOriginal, "Image original");
+    gtk_label_set_text(dt->labelTraitee, "Image uniformisee");
+    gtk_image_clear(dt->imgOriginal);
+    gtk_image_clear(dt->imgTraitee);
+    //On cree un pixbuf depuis le fichier charger et reinitialise le ratio
+    dt->pixbufOriginal= gdk_pixbuf_new_from_file(filename,NULL);
     dt->ratio = 1;
-    if(dt->pixbuf != NULL){
-        double height = (double) gdk_pixbuf_get_height(dt->pixbuf);
-        double width = (double) gdk_pixbuf_get_width(dt->pixbuf);
+    //Si l'image a correctement été chargé
+    if(dt->pixbufOriginal != NULL){
+        // On recupere sa hauteur et largeur puis on calcul le ratio de retrecissement
+        // selon les constantes MAX_HEIGHT_IMG et MAX_WIDTH_IMG
+        double height = (double) gdk_pixbuf_get_height(dt->pixbufOriginal);
+        double width = (double) gdk_pixbuf_get_width(dt->pixbufOriginal);
         if(height > MAX_HEIGHT_IMG){
             dt->ratio = MAX_HEIGHT_IMG / height;
         }
         if(dt->ratio*width > MAX_WIDTH_IMG){
             dt->ratio = MAX_WIDTH_IMG / width;
         }
+        //Si le ratio n'a pas changé on referencie pibxufOriginal en tant qu'originalScaled sinon on scale selon le ratio
         if(dt->ratio != 1) {
-            GdkPixbuf * tmp = gdk_pixbuf_scale_simple(dt->pixbuf, dt->ratio * width, dt->ratio * height, GDK_INTERP_BILINEAR);
-            g_clear_object(&dt->pixbuf);
-            dt->pixbuf = tmp;
+            dt->pixbufOriginalScaled = gdk_pixbuf_scale_simple(dt->pixbufOriginal, dt->ratio * width, dt->ratio * height, GDK_INTERP_HYPER);
+        } else {
+            dt->pixbufOriginalScaled = dt->pixbufOriginal;
         }
-        gtk_image_set_from_pixbuf(dt->imgOriginal, dt->pixbuf);
     }
+    //Si le retrecissement/referencement a reussi on affiche le pixbufOriginalScaled puis on effectue la construction et le rendu
+    if(dt->pixbufOriginalScaled != NULL) {
+        gtk_image_set_from_pixbuf(dt->imgOriginal, dt->pixbufOriginalScaled);
+        build(dt), rendu(dt);
+    } else { //Sinon on affiche une erreur (MsgBox pour windows car on libere la console)
+        #ifdef _WIN32
+            MessageBox(NULL, "UniMage ERREUR: Format non pris en charge.", "Erreur", MB_OK);
+        #endif
+        fprintf(stderr, "UniMage ERREUR: Format non pris en charge.\n");
+    }
+}
+
+void rota_buffer(GdkPixbuf **pixbuf, int rota_multiple)
+{
+    //Si le pixbuf n'est pas NULL et que rota_multiple est 1,2 ou 3
+    if(pixbuf != NULL && *pixbuf != NULL && rota_multiple > 0 && rota_multiple < 4){
+        GdkPixbuf *tmp = gdk_pixbuf_rotate_simple(*pixbuf, 90*rota_multiple); //On cree un nouveau pixbuf avec la rotation effectuée
+        g_clear_object(pixbuf); //On libere l'ancien pixbuf
+        *pixbuf = tmp; //On defini le pixbuf reçu comme etant le nouveau pixbuf
+    }
+}
+
+void saveFile(appdata * dt, char* filename, int mod)
+{
+    char * tmp = NULL;
+    if(strcmp(&filename[strlen(filename)-4], ".bmp") != 0){
+        tmp = calloc(strlen(filename)+5, sizeof(char));
+        if(tmp != NULL){
+            sprintf(tmp, "%s.bmp", filename);
+            filename = tmp;
+        }
+    }
+    if(dt->pixbufOriginal != NULL){
+        GdkPixbuf * sortie = gdk_pixbuf_copy(dt->pixbufOriginal); //On copie l'original
+        rota_buffer(&sortie, mod); //On lui applique une rotation selon mod (les entrees sont defini dans l'evenement)
+        if(sortie != NULL){  //Si la copie (et la rotation) a réussi 
+            //On effectue un rendu une constructuion et un rendu selon le mode courant sur la copie de l'original pour ne pas perdre en qualité
+            image *img = creerImagePixbuf(sortie);
+            GNode * node = construire_arbre_zpixel(0, 0, MAX(img->largeur, img->hauteur), img, dt->f);
+            affiche_arbre(node, gtk_adjustment_get_value(dt->adjustment), img);
+            createBitmapFile(filename, img); //On cree le fichier
+            //On libere l'arbre construit, le pixbuf sur lequel on a travaillé et l'interface image crée pour le lien
+            detruire_arbre(&node);
+            g_clear_object(&sortie);
+            free(img);
+        }
+    } 
+    if(tmp != NULL) free(tmp);
 }
 
 void change_mode(appdata * dt, int max)
 {
-    gdouble ratio = gtk_adjustment_get_value(dt->adjustment) / gtk_adjustment_get_upper(dt->adjustment);
-    gtk_adjustment_set_upper(dt->adjustment, max);
-    gtk_adjustment_set_value(dt->adjustment, ratio*max);
-    build(dt);
-    rendu(dt);
-}
-
-void get_original_pixbuf(appdata * dt)
-{
-    if(dt->traitement!=NULL) g_clear_object(&dt->traitement);
-    if(dt->pixbuf!=NULL) dt->traitement = gdk_pixbuf_copy(dt->pixbuf);
+    gdouble ratio = gtk_adjustment_get_value(dt->adjustment) / gtk_adjustment_get_upper(dt->adjustment); //Calcul du pourcentage actuel de l'ajustement
+    gtk_adjustment_set_upper(dt->adjustment, max); //Definition du max demandé
+    gtk_adjustment_set_value(dt->adjustment, ratio*max); //Définition de la valeur a partir du ratio de l'ancienne valeur sur l'ancien max facteur du nouveau max
+    build(dt), rendu(dt); //On construit et on rend
 }
 
 void build(appdata * dt)
 {
-    destroyNodeTree(dt->node, NULL);
-    image *img = creerImagePixbuf(dt->pixbuf);
+    //Destruction de l'arbre précédent et creation d'une interface image sur le pixbufOriginalScaled
+    detruire_arbre(&dt->node);
+    image *img = creerImagePixbuf(dt->pixbufOriginalScaled);
     if(img != NULL){
-        dt->node = construire_arbre_zpixel(0, 0, MAX(img->largeur, img->hauteur), img, dt->f);
+        dt->node = construire_arbre_zpixel(0, 0, MAX(img->largeur, img->hauteur), img, dt->f); //Construction de l'arbre selon fonction courante
         char labelOriginalS[100];
         char labelTraiteeS[100];
-        sprintf(labelOriginalS, "%d pixels", img->largeur * img->hauteur);
-        sprintf(labelTraiteeS, "%d zone de pixels", g_node_n_nodes(dt->node, G_TRAVERSE_ALL));
-        gtk_label_set_text(dt->labelOriginal, labelOriginalS);
-        gtk_label_set_text(dt->labelTraitee, labelTraiteeS);
+        sprintf(labelOriginalS, "%d pixels", img->largeur * img->hauteur); //Définition du nb de pixel de la version reduite
+        sprintf(labelTraiteeS, "%d zone de pixels", g_node_n_nodes(dt->node, G_TRAVERSE_ALL)); //Definition du nombre de noeud de l'arbre de la version reduite
+        gtk_label_set_text(dt->labelOriginal, labelOriginalS); //Affichage nb pixels original
+        gtk_label_set_text(dt->labelTraitee, labelTraiteeS); //Affichage nb noeud arbre de rendu
     }
     free(img);
 }
 
 void rendu(appdata * dt)
 {
-    get_original_pixbuf(dt);
-    image *img = creerImagePixbuf(dt->traitement);
-    if (img != NULL && img->contenu != NULL && dt->node != NULL)
+    //Recuperation dans le pixbuf de calcul de preview du pixbufOriginalScaled
+    if(dt->pixbufCalcul!=NULL) g_clear_object(&dt->pixbufCalcul);
+    if(dt->pixbufOriginalScaled!=NULL) dt->pixbufCalcul = gdk_pixbuf_copy(dt->pixbufOriginalScaled);
+    image *img = creerImagePixbuf(dt->pixbufCalcul); //Creation de notre interface image
+    //Si interface OK et arbre courant OK
+    if (img != NULL && dt->node != NULL)
     {
-        affiche_arbre(dt->node, (unsigned int)gtk_adjustment_get_value(dt->adjustment), img);
-        gtk_image_set_from_pixbuf(dt->imgTraitee, dt->traitement);
+        affiche_arbre(dt->node, (unsigned int)gtk_adjustment_get_value(dt->adjustment), img); //Projection zpixel degradation inferieure au seuil
+        gtk_image_set_from_pixbuf(dt->imgTraitee, dt->pixbufCalcul); //Definition du pixbufCalcul en tant que preview image traitee
     }
     free(img);
 }
 
-void aboutButtonClicked(GtkWidget * widget, gpointer data)
+
+//Signaux
+
+void okAboutPressed(GtkWidget * widget, gpointer data)
 {
-    gtk_widget_show(GTK_WIDGET(data));
+    gtk_widget_hide(GTK_WIDGET(data)); //Cacher fenetre a propos
 }
 
-void finApropos(GtkWidget * widget, gpointer data)
+void aboutButtonPressed(GtkWidget * widget, gpointer data)
 {
-    gtk_widget_hide(GTK_WIDGET(data));
+    gtk_widget_show(GTK_WIDGET(data)); //Afficher fenetre a propos
 }
 
-void openFile(GtkWidget *widget, gpointer data)
+//Bouton Ouvrir pressé
+void openFilePressed(GtkWidget * widget, gpointer data)
 {
-    appdata *dt = (appdata *)data;
+    appdata *dt = (appdata *)data; //Recuperation etat de l'app
+    //Lancement dialogue d'ouverture et appel a la procedure loadFile
     GtkWidget *dialog = gtk_file_chooser_dialog_new("Sélectionner un fichier", NULL, GTK_FILE_CHOOSER_ACTION_OPEN, "Choisir", GTK_RESPONSE_ACCEPT, "Annuler", GTK_RESPONSE_CANCEL, NULL);
-    gtk_image_clear(dt->imgTraitee);
-    gtk_label_set_text(dt->labelOriginal, "Image original");
-    gtk_label_set_text(dt->labelTraitee, "Image uniformisee");
     gint res = gtk_dialog_run(GTK_DIALOG(dialog));
     switch(res){
         case GTK_RESPONSE_ACCEPT:
             loadFile(dt, gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog)));
-            if(gtk_image_get_pixbuf(dt->imgOriginal)!=NULL){
-                build(dt);
-                rendu(dt);
-            } else {
-                #ifdef _WIN32
-                    gtk_widget_destroy(dialog);
-                    dialog = NULL;
-                    MessageBox(NULL, "Format non pris en charge.", "Erreur", MB_OK);
-                #endif
-                fprintf(stderr, "Format non pris en charge.\n");
-            }
             break;
         case GTK_RESPONSE_CANCEL:
             break;
@@ -294,19 +281,21 @@ void openFile(GtkWidget *widget, gpointer data)
     gtk_widget_destroy(dialog);
 }
 
-void saveAs(GtkWidget * widget, gpointer data)
+//Bouton Enregistrer sous pressé
+void saveAsPressed(GtkWidget * widget, gpointer data)
 {
-    appdata *dt = (appdata *) data;
-    if(dt->traitement != NULL){
-        GtkWidget *dialog = gtk_file_chooser_dialog_new("Enregistrer sous", NULL, GTK_FILE_CHOOSER_ACTION_SAVE, "Sauvegarder", GTK_RESPONSE_ACCEPT, "Annuler", GTK_RESPONSE_CANCEL, NULL);
+    appdata *dt = (appdata *) data; //Recuperation de l'etat de l'app
+    //Si le pixbufOriginal existe
+    if(dt->pixbufOriginal != NULL){
+        //Lancement dialogue d'enregistrement et appel procédure saveFile
+        GtkWidget *dialog = gtk_file_chooser_dialog_new("Enregistrer sous", NULL, GTK_FILE_CHOOSER_ACTION_SAVE, "Sauvegarder", 0, "Appliquer rotation 90° droite", 3, "Appliquer rotation 90° gauche", 1, "Appliquer rotation 180°", 2 , "Annuler", GTK_RESPONSE_CANCEL, NULL);
         gint res = gtk_dialog_run(GTK_DIALOG(dialog));
         switch (res){
-            case GTK_RESPONSE_ACCEPT:
-                GdkPixbuf * sortie = gdk_pixbuf_scale_simple(dt->traitement, (1/dt->ratio)*gdk_pixbuf_get_width(dt->traitement), (1/dt->ratio)*gdk_pixbuf_get_height(dt->traitement), GDK_INTERP_BILINEAR);
-                image * img = creerImagePixbuf(sortie);
-                createBitmapFile(gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog)), img);
-                g_clear_object(&sortie);
-                free(img);
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+                saveFile(dt, gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog)), res);
                 break;
             case GTK_RESPONSE_CANCEL:
                 break;
@@ -317,9 +306,9 @@ void saveAs(GtkWidget * widget, gpointer data)
 
 void seuilPressed(GtkWidget *widget, gpointer data)
 {
-    appdata *dt = (appdata *)data;
-    dt->f = degradationLuminosite;
-    change_mode(dt, 255);
+    appdata *dt = (appdata *)data; // Recuperation de l'etat de l'app
+    dt->f = degradationLuminosite; // Definition de la methode de degradation
+    change_mode(dt, 255); // Change le max sans changer le remplissage de l'ajustement, construit et rend
 }
 
 void deltaPressed(GtkWidget *widget, gpointer data)
@@ -338,6 +327,6 @@ void moyennePressed(GtkWidget *widget, gpointer data)
 
 void adjustmentChanged(GtkWidget * widget, gpointer data)
 {
-    appdata *dt = (appdata *)data;
-    rendu(dt);
+    appdata *dt = (appdata *)data; // Recuperation de l'etat de l'app
+    rendu(dt); // Effectue un rendu
 }

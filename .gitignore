@@ -1,4 +1,5 @@
 /build/
-*.is
-*_setup.exe
-*tests/build*
+*.iss
+*setup.exe
+*tests/*.exe
+/.vscode/*.vc.db

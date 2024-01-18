@@ -75,7 +75,7 @@ GNode* construire_arbre_zpixel(int x, int y, int taille, image * img, Degradatio
         pix->degradation = degradation(node, stack, f);
         if(pix->degradation<0){
             stack_remove(stack);
-            destroyNodeTree(node, NULL);
+            detruire_arbre(&node);
             return NULL;
         }
     }
@@ -87,10 +87,11 @@ void parcourir_arbre(GNode * root, gpointer data){
     treedata *dt = (treedata *)data;
     zpixel *pix = (zpixel *) root->data;
     image *img = (image *) dt->img;
-    g_node_children_foreach(root, G_TRAVERSE_ALL, parcourir_arbre, data);
-    if(pix->degradation < dt->seuil){
+    if(pix->degradation <= dt->seuil){
         if(projeter(pix, img) == -1) fprintf(stderr, "Erreur de projection du zpixel\n"); 
+        else return;
     }
+    g_node_children_foreach(root, G_TRAVERSE_ALL, parcourir_arbre, data);
 }
 
 int affiche_arbre(GNode *root, const unsigned int seuil, image *img){

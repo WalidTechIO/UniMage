@@ -39,7 +39,7 @@ Université de Bretagne Occidentale</property>
           </packing>
         </child>
         <child>
-          <object class="GtkButton" id="finapropos">
+          <object class="GtkButton" id="okApropos">
             <property name="label" translatable="yes">OK</property>
             <property name="visible">True</property>
             <property name="can-focus">True</property>

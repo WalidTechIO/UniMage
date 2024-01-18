@@ -3,8 +3,8 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <time.h>
-#include <gtk/gtk.h>
+#include <glib.h>
+#include <gdk-pixbuf/gdk-pixbuf.h>
 
 /**
  * Défini une image
@@ -33,6 +33,6 @@ image *creerImagePixbuf(GdkPixbuf *);
 /**
  * Detruit un arbre de GNode en profondeur
 */
-void destroyNodeTree(GNode *, gpointer);
+void detruire_arbre(GNode **);
 
 #endif

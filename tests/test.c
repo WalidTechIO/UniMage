@@ -25,7 +25,16 @@ int main(void){
 
     zpixel *ptrMonZPixel2 = creerZpixelBlanc(3, p2); // Creation zpixel taille 3 x 8 y 7 blanc
 
-    printf("Module zpixel:\n\n");
+    printf("Verification image de test vide:\n\n");
+
+    int statut = 0;
+    for(int i = 0; i<img->rowstride*img->hauteur; i++){
+        statut += img->contenu[i];
+    }
+    if (statut == 0) fprintf(stderr, "\n       Image de test: KO\n");
+    else printf("       Image de test: OK\n");
+
+    printf("\n\nModule zpixel:\n\n");
 
     if (ptrMonZPixel == NULL || ptrMonZPixel2 == NULL || ptrMonZPixel->color.red != 1 || ptrMonZPixel->size != 2) fprintf(stderr, "\n       Creer zpixel: KO\n");
     else printf("       Creer zpixel: OK\n");
@@ -66,7 +75,7 @@ int main(void){
     else printf("       Affichage arbre: OK\n");
 
     //afficher_image(img);
-    destroyNodeTree(root, NULL);
+    detruire_arbre(&root);
     free(img->contenu);
     free(img);
 
@@ -83,7 +92,7 @@ int main(void){
     if (degradation(root, stack, degradationTest) != 1) fprintf(stderr, "       Calcul degradation avec enfants: KO\n");
     else printf("       Calcul degradation Node avec enfants: OK\n");
 
-    destroyNodeTree(root, NULL);
+    detruire_arbre(&root);
     stack_remove(stack);
 
     return 0;

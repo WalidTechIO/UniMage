@@ -1,25 +1,11 @@
 {
-    "makefile.launchConfigurations": [
-        {
-            "cwd": "/home/etudiants/licence3/walid.elouazizi/Téléchargements/projet/build",
-            "binaryPath": "/home/etudiants/licence3/walid.elouazizi/Téléchargements/projet/build/executable",
-            "binaryArgs": []
-        },
-        {
-            "cwd": "/mnt/c/Users/Walkloly/Downloads/projet/build",
-            "binaryPath": "/mnt/c/Users/Walkloly/Downloads/projet/build/executable",
-            "binaryArgs": []
-        },
-        {
-            "cwd": "/home/etudiants/licence3/walid.elouazizi/Téléchargements/unimage/build",
-            "binaryPath": "/home/etudiants/licence3/walid.elouazizi/Téléchargements/unimage/build/executable",
-            "binaryArgs": []
-        },
-        {
-            "cwd": "/mnt/c/dev/cours/C/pca/build",
-            "binaryPath": "/mnt/c/dev/cours/C/pca/build/executable",
-            "binaryArgs": []
-        }
-    ],
-    "C_Cpp.errorSquiggles": "disabled"
+    "C_Cpp.errorSquiggles": "disabled",
+    "files.associations": {
+        "*.embeddedhtml": "html",
+        "windows.h": "c",
+        "unistd.h": "c",
+        "string.h": "c",
+        "degradation.h": "c",
+        "tree.h": "c"
+    }
 }

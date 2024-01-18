@@ -10,7 +10,6 @@
 #include <stdio.h>
 #include <utils.h>
 
-
 /**
 * Défini un point 2D
 */

@@ -127,15 +127,7 @@ image * creerImage(unsigned int width, unsigned int height){
     if(contenuImg == NULL){
         return NULL;
     }
-    for(int i = 0; i < height; i++){
-        int idx = i * rowstride + 3 * width;
-        for(int y = idx; y<idx+gap; y++){
-            contenuImg[y] = 0x00;
-            if(y == idx+gap-1){
-                contenuImg[y] = 0xFF;
-            }
-        }
-    }
+    if (gap != 0) for (int i = rowstride - 1; i<height*rowstride; i+=rowstride) contenuImg[i] = 0xFF;
     image * img = (image * ) malloc(sizeof(image));
     if(img == NULL){
         free(contenuImg);
@@ -169,4 +161,10 @@ void destroyNodeTree(GNode *node, gpointer data)
     g_node_children_foreach(node, G_TRAVERSE_ALL, destroyNodeTree, NULL);
     free(node->data);
     g_node_destroy(node);
+}
+
+void detruire_arbre(GNode **nodeptr)
+{
+    destroyNodeTree(*nodeptr, NULL);
+    *nodeptr = NULL;
 }
